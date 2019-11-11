@@ -14,8 +14,6 @@
 
 using namespace std;
 
-Team* createPlayers();
-
 struct Player {
     string name;
     int rating;
@@ -25,9 +23,13 @@ struct Team {
     Player players[15];
     string name;
     float rating;
+    char conference;
     int wins;
     int losses;
 };
+
+Team* createPlayers();
+float createRating(Team team);
 
 int main(int argc, char **argv){
     Team nbaTeams[30] = createPlayers();
@@ -62,6 +64,8 @@ Team* createPlayers() {
     nbaTeams[0].players[12].name = "Evan Turner"; nbaTeams[0].players[12].rating=73;
     nbaTeams[0].players[13].name = "Bruno Fernando"; nbaTeams[0].players[13].rating = 71;
     nbaTeams[0].players[14].name = "Tyrone Wallace"; nbaTeams[0].players[14].rating = 69;
+    nbaTeams[0].rating = createRating(nbaTeams[0]);
+    nbaTeams[0].conference = 'E';
 
     nbaTeams[1].name = "Boston Celtics";
     nbaTeams[1].wins = 0; nbaTeams[1].losses = 0;
@@ -80,6 +84,9 @@ Team* createPlayers() {
     nbaTeams[1].players[12].name = "Grant Williams"; nbaTeams[1].players[12].rating=72;
     nbaTeams[1].players[13].name = "Carsen Edwards"; nbaTeams[1].players[13].rating = 70;
     nbaTeams[1].players[14].name = "Javonte Green"; nbaTeams[1].players[14].rating = 69;
+    nbaTeams[1].rating = createRating(nbaTeams[1]);
+    nbaTeams[1].conference = 'E';
+
 
     nbaTeams[2].name = "Brooklyn Nets";
     nbaTeams[2].wins = 0; nbaTeams[2].losses = 0;
@@ -98,6 +105,8 @@ Team* createPlayers() {
     nbaTeams[2].players[12].name = "Nicolas Claxton"; nbaTeams[2].players[12].rating=72;
     nbaTeams[2].players[13].name = "Dzanan Musa"; nbaTeams[2].players[13].rating = 71;
     nbaTeams[2].players[14].name = "Timothe Luwawu-Cabarrot"; nbaTeams[2].players[14].rating = 70;
+    nbaTeams[2].rating = createRating(nbaTeams[2]);
+    nbaTeams[2].conference = 'E';
 
     nbaTeams[3].name = "Charlotte Hornets";
     nbaTeams[3].wins = 0; nbaTeams[3].losses = 0;
@@ -116,6 +125,8 @@ Team* createPlayers() {
     nbaTeams[3].players[12].name = "Cody Martin"; nbaTeams[3].players[12].rating=70;
     nbaTeams[3].players[13].name = "Jalen McDaniels"; nbaTeams[3].players[13].rating = 69;
     nbaTeams[3].players[14].name = "Robert Franks"; nbaTeams[3].players[14].rating = 67;
+    nbaTeams[3].rating = createRating(nbaTeams[3]);
+    nbaTeams[3].conference = 'E';
 
     nbaTeams[4].name = "Chicago Bulls";
     nbaTeams[4].wins = 0; nbaTeams[4].losses = 0;
@@ -134,6 +145,8 @@ Team* createPlayers() {
     nbaTeams[4].players[12].name = "Shaquille Harrison"; nbaTeams[4].players[12].rating=72;
     nbaTeams[4].players[13].name = "Daniel Gafford"; nbaTeams[4].players[13].rating = 71;
     nbaTeams[4].players[14].name = "Luke Kornet"; nbaTeams[4].players[14].rating = 71;
+    nbaTeams[4].rating = createRating(nbaTeams[4]);
+    nbaTeams[4].conference = 'E';
 
     nbaTeams[5].name = "Cleveland Cavaliers";
     nbaTeams[5].wins = 0; nbaTeams[5].losses = 0;
@@ -152,6 +165,8 @@ Team* createPlayers() {
     nbaTeams[5].players[12].name = "Alfonzo McKinnie"; nbaTeams[5].players[12].rating=72;
     nbaTeams[5].players[13].name = "Dylan Windler"; nbaTeams[5].players[13].rating = 71;
     nbaTeams[5].players[14].name = "Dean Wade"; nbaTeams[5].players[14].rating = 68;
+    nbaTeams[5].rating = createRating(nbaTeams[5]);
+    nbaTeams[5].conference = 'E';
 
     nbaTeams[6].name = "Dallas Mavericks";
     nbaTeams[6].wins = 0; nbaTeams[6].losses = 0;
@@ -170,6 +185,8 @@ Team* createPlayers() {
     nbaTeams[6].players[12].name = "Ryan Broekhoff"; nbaTeams[6].players[12].rating=72;
     nbaTeams[6].players[13].name = "Courtney Lee"; nbaTeams[6].players[13].rating = 72;
     nbaTeams[6].players[14].name = "Isaiah Roby"; nbaTeams[6].players[14].rating = 70;
+    nbaTeams[6].rating = createRating(nbaTeams[6]);
+    nbaTeams[6].conference = 'W';
 
     nbaTeams[7].name = "Denver Nuggets";
     nbaTeams[7].wins = 0; nbaTeams[7].losses = 0;
@@ -188,6 +205,8 @@ Team* createPlayers() {
     nbaTeams[7].players[12].name = "Bol Bol"; nbaTeams[7].players[12].rating=73;
     nbaTeams[7].players[13].name = "Jarred Vanderbilt"; nbaTeams[7].players[13].rating = 70;
     nbaTeams[7].players[14].name = "Vlatko Cancar"; nbaTeams[7].players[14].rating = 70;
+    nbaTeams[7].rating = createRating(nbaTeams[7]);
+    nbaTeams[7].conference = 'W';
 
     nbaTeams[8].name = "Detroit Pistons";
     nbaTeams[8].wins = 0; nbaTeams[8].losses = 0;
@@ -206,6 +225,8 @@ Team* createPlayers() {
     nbaTeams[8].players[12].name = "Tim Frazier"; nbaTeams[8].players[12].rating=71;
     nbaTeams[8].players[13].name = "Sviatoslav Mykhailiuk"; nbaTeams[8].players[13].rating = 70;
     nbaTeams[8].players[14].name = "Khyri Thomas"; nbaTeams[8].players[14].rating = 69;
+    nbaTeams[8].rating = createRating(nbaTeams[8]);
+    nbaTeams[8].conference = 'E';
 
     nbaTeams[9].name = "Golden State Warriors";
     nbaTeams[9].wins = 0; nbaTeams[9].losses = 0;
@@ -224,6 +245,8 @@ Team* createPlayers() {
     nbaTeams[9].players[12].name = "Jacob Evans"; nbaTeams[9].players[12].rating=71;
     nbaTeams[9].players[13].name = "Jordan Poole"; nbaTeams[9].players[13].rating = 71;
     nbaTeams[9].players[14].name = "Alen Smailagic"; nbaTeams[9].players[14].rating = 71;
+    nbaTeams[9].rating = createRating(nbaTeams[9]);
+    nbaTeams[9].conference = 'W';
 
     nbaTeams[10].name = "Houston Rockets";
     nbaTeams[10].wins = 0; nbaTeams[10].losses = 0;
@@ -242,6 +265,8 @@ Team* createPlayers() {
     nbaTeams[10].players[12].name = "Ryan Anderson"; nbaTeams[10].players[12].rating=70;
     nbaTeams[10].players[13].name = "Gary Clark"; nbaTeams[10].players[13].rating = 69;
     nbaTeams[10].players[14].name = "Isaiah Hartenstein"; nbaTeams[10].players[14].rating = 68;
+    nbaTeams[10].rating = createRating(nbaTeams[10]);
+    nbaTeams[10].conference = 'W';
 
     nbaTeams[11].name = "Indiana Pacers";
     nbaTeams[11].wins = 0; nbaTeams[11].losses = 0;
@@ -260,6 +285,8 @@ Team* createPlayers() {
     nbaTeams[11].players[12].name = "Edmond Sumner"; nbaTeams[11].players[12].rating=71;
     nbaTeams[11].players[13].name = "JaKarr Sampson"; nbaTeams[11].players[13].rating = 71;
     nbaTeams[11].players[14].name = "Alize Johnson"; nbaTeams[11].players[14].rating = 70;
+    nbaTeams[11].rating = createRating(nbaTeams[11]);
+    nbaTeams1.conference = 'E';
 
     nbaTeams[12].name = "Los Angeles Clippers";
     nbaTeams[12].wins = 0; nbaTeams[12].losses = 0;
@@ -278,6 +305,8 @@ Team* createPlayers() {
     nbaTeams[12].players[12].name = "Jerome Robinson"; nbaTeams[12].players[12].rating=71;
     nbaTeams[12].players[13].name = "Terrance Mann"; nbaTeams[12].players[13].rating = 69;
     nbaTeams[12].players[14].name = "Derrick Walton Jr."; nbaTeams[12].players[14].rating = 67;
+    nbaTeams[12].rating = createRating(nbaTeams[12]);
+    nbaTeams[12].conference = 'W';
 
     nbaTeams[13].name = "Los Angeles Lakers";
     nbaTeams[13].wins = 0; nbaTeams[13].losses = 0;
@@ -296,6 +325,8 @@ Team* createPlayers() {
     nbaTeams[13].players[12].name = "Troy Daniels"; nbaTeams[13].players[12].rating=72;
     nbaTeams[13].players[13].name = "Jared Dudley"; nbaTeams[13].players[13].rating = 72;
     nbaTeams[13].players[14].name = "Talen Horton-Tucker"; nbaTeams[13].players[14].rating = 70;
+    nbaTeams[13].rating = createRating(nbaTeams[13]);
+    nbaTeams[13].conference = 'W';
 
     nbaTeams[14].name = "Memphis Grizzlies";
     nbaTeams[14].wins = 0; nbaTeams[14].losses = 0;
@@ -314,6 +345,8 @@ Team* createPlayers() {
     nbaTeams[14].players[12].name = "De'Anthony Melton"; nbaTeams[14].players[12].rating=72;
     nbaTeams[14].players[13].name = "Solomon Hill"; nbaTeams[14].players[13].rating = 70;
     nbaTeams[14].players[14].name = "Marko Guduric"; nbaTeams[14].players[14].rating = 69;
+    nbaTeams[14].rating = createRating(nbaTeams[14]);
+    nbaTeams[14].conference = 'W';
 
     nbaTeams[15].name = "Miami Heat";
     nbaTeams[15].wins = 0; nbaTeams[15].losses = 0;
@@ -332,6 +365,8 @@ Team* createPlayers() {
     nbaTeams[15].players[12].name = "KZ Okpala"; nbaTeams[15].players[12].rating=71;
     nbaTeams[15].players[13].name = "Udonis Haslem"; nbaTeams[15].players[13].rating = 70;
     nbaTeams[15].players[14].name = "Daryl Macon"; nbaTeams[15].players[14].rating = 68;
+    nbaTeams[15].rating = createRating(nbaTeams[15]);
+    nbaTeams[15].conference = 'E';
 
     nbaTeams[16].name = "Milwaukee Bucks";
     nbaTeams[16].wins = 0; nbaTeams[16].losses = 0;
@@ -350,6 +385,8 @@ Team* createPlayers() {
     nbaTeams[16].players[12].name = "D.J. Wilson"; nbaTeams[16].players[12].rating=72;
     nbaTeams[16].players[13].name = "Frank Mason"; nbaTeams[16].players[13].rating = 71;
     nbaTeams[16].players[14].name = "Dragan Bender"; nbaTeams[16].players[14].rating = 71;
+    nbaTeams[16].rating = createRating(nbaTeams[16]);
+    nbaTeams[16].conference = 'E';
 
     nbaTeams[17].name = "Minnesota Timberwolves";
     nbaTeams[17].wins = 0; nbaTeams[17].losses = 0;
@@ -368,6 +405,8 @@ Team* createPlayers() {
     nbaTeams[17].players[12].name = "Keita Bates-Diop"; nbaTeams[17].players[12].rating=70;
     nbaTeams[17].players[13].name = "Naz Reid"; nbaTeams[17].players[13].rating = 70;
     nbaTeams[17].players[14].name = "Jaylen Nowell"; nbaTeams[17].players[14].rating = 70;
+    nbaTeams[17].rating = createRating(nbaTeams[17]);
+    nbaTeams[17].conference = 'W';
 
     nbaTeams[18].name = "New Orleans Pelicans";
     nbaTeams[18].wins = 0; nbaTeams[18].losses = 0;
@@ -386,6 +425,8 @@ Team* createPlayers() {
     nbaTeams[18].players[12].name = "Frank Jackson"; nbaTeams[18].players[12].rating=72;
     nbaTeams[18].players[13].name = "Darius Miller"; nbaTeams[18].players[13].rating = 72;
     nbaTeams[18].players[14].name = "Nickeil Alexander-Walker"; nbaTeams[18].players[14].rating = 72;
+    nbaTeams[18].rating = createRating(nbaTeams[18]);
+    nbaTeams[18].conference = 'W';
 
     nbaTeams[19].name = "New York Knicks";
     nbaTeams[19].wins = 0; nbaTeams[19].losses = 0;
@@ -404,6 +445,8 @@ Team* createPlayers() {
     nbaTeams[19].players[12].name = "Ivan Rabb"; nbaTeams[19].players[12].rating=74;
     nbaTeams[19].players[13].name = "Frank Ntilikina"; nbaTeams[19].players[13].rating = 73;
     nbaTeams[19].players[14].name = "Wayne Ellington"; nbaTeams[19].players[14].rating = 73;
+    nbaTeams[19].rating = createRating(nbaTeams[19]);
+    nbaTeams[19].conference = 'E';
 
     nbaTeams[20].name = "Oklahoma City Thunder";
     nbaTeams[20].wins = 0; nbaTeams[20].losses = 0;
@@ -422,6 +465,8 @@ Team* createPlayers() {
     nbaTeams[20].players[12].name = "Deonte Burton"; nbaTeams[20].players[12].rating=70;
     nbaTeams[20].players[13].name = "Darius Bazley"; nbaTeams[20].players[13].rating = 70;
     nbaTeams[20].players[14].name = "Luguentz Dor"; nbaTeams[20].players[14].rating = 68;
+    nbaTeams[20].rating = createRating(nbaTeams[20]);
+    nbaTeams[20].conference = 'W';
 
     nbaTeams[21].name = "Orlando Magic";
     nbaTeams[21].wins = 0; nbaTeams[21].losses = 0;
@@ -440,6 +485,8 @@ Team* createPlayers() {
     nbaTeams[21].players[12].name = "Melvin Frazier"; nbaTeams[21].players[12].rating=70;
     nbaTeams[21].players[13].name = "Amile Jefferson"; nbaTeams[21].players[13].rating = 69;
     nbaTeams[21].players[14].name = "Josh Magette"; nbaTeams[21].players[14].rating = 68;
+    nbaTeams[21].rating = createRating(nbaTeams[21]);
+    nbaTeams[21].conference = 'E';
 
     nbaTeams[22].name = "Philadelphia 76ers";
     nbaTeams[22].wins = 0; nbaTeams[22].losses = 0;
@@ -458,6 +505,8 @@ Team* createPlayers() {
     nbaTeams[22].players[12].name = "Zhaire Smithh"; nbaTeams[22].players[12].rating=72;
     nbaTeams[22].players[13].name = "Raul Neto"; nbaTeams[22].players[13].rating = 72;
     nbaTeams[22].players[14].name = "Shake Milton"; nbaTeams[22].players[14].rating = 71;
+    nbaTeams[22].rating = createRating(nbaTeams[22]);
+    nbaTeams[22].conference = 'E';
 
     nbaTeams[23].name = "Phoenix Suns";
     nbaTeams[23].wins = 0; nbaTeams[23].losses = 0;
@@ -476,6 +525,8 @@ Team* createPlayers() {
     nbaTeams[23].players[12].name = "Cameron Johnson"; nbaTeams[23].players[12].rating=71;
     nbaTeams[23].players[13].name = "Elie Okobo"; nbaTeams[23].players[13].rating = 69;
     nbaTeams[23].players[14].name = "Jalen Lecque"; nbaTeams[23].players[14].rating = 68;
+    nbaTeams[23].rating = createRating(nbaTeams[23]);
+    nbaTeams[23].conference = 'W';
 
     nbaTeams[24].name = "Portland Trailblazers";
     nbaTeams[24].wins = 0; nbaTeams[24].losses = 0;
@@ -494,6 +545,8 @@ Team* createPlayers() {
     nbaTeams[24].players[12].name = "Anthony Tolliver"; nbaTeams[24].players[12].rating=72;
     nbaTeams[24].players[13].name = "Gary Trent Jr."; nbaTeams[24].players[13].rating = 71;
     nbaTeams[24].players[14].name = "Jaylen Hoard"; nbaTeams[24].players[14].rating = 68;
+    nbaTeams[24].rating = createRating(nbaTeams[24]);
+    nbaTeams[24].conference = 'W';
 
     nbaTeams[25].name = "Sacramento Kings";
     nbaTeams[25].wins = 0; nbaTeams[25].losses = 0;
@@ -512,6 +565,8 @@ Team* createPlayers() {
     nbaTeams[25].players[12].name = "Caleb Swanigan"; nbaTeams[25].players[12].rating=70;
     nbaTeams[25].players[13].name = "Justin James"; nbaTeams[25].players[13].rating = 70;
     nbaTeams[25].players[14].name = "Wenyen Gabriel"; nbaTeams[25].players[14].rating = 68;
+    nbaTeams[25].rating = createRating(nbaTeams[25]);
+    nbaTeams[25].conference = 'W';
 
     nbaTeams[26].name = "San Antonio Spurs";
     nbaTeams[26].wins = 0; nbaTeams[26].losses = 0;
@@ -530,6 +585,8 @@ Team* createPlayers() {
     nbaTeams[26].players[12].name = "Luka Samanic"; nbaTeams[26].players[12].rating=72;
     nbaTeams[26].players[13].name = "Keldon Johnson"; nbaTeams[26].players[13].rating = 72;
     nbaTeams[26].players[14].name = "Chimezie Metu"; nbaTeams[26].players[14].rating = 71;
+    nbaTeams[26].rating = createRating(nbaTeams[26]);
+    nbaTeams[26].conference = 'W';
 
     nbaTeams[27].name = "Toronto Raptors";
     nbaTeams[27].wins = 0; nbaTeams[27].losses = 0;
@@ -548,6 +605,8 @@ Team* createPlayers() {
     nbaTeams[27].players[12].name = "Terence Davis"; nbaTeams[27].players[12].rating=70;
     nbaTeams[27].players[13].name = "Malcom Miller"; nbaTeams[27].players[13].rating = 69;
     nbaTeams[27].players[14].name = "Dewan Hernandez"; nbaTeams[27].players[14].rating = 68;
+    nbaTeams[27].rating = createRating(nbaTeams[27]);
+    nbaTeams[27].conference = 'E';
 
     nbaTeams[28].name = "Utah Jazz";
     nbaTeams[28].wins = 0; nbaTeams[28].losses = 0;
@@ -566,6 +625,8 @@ Team* createPlayers() {
     nbaTeams[28].players[12].name = "Tony Bradley Jr."; nbaTeams[28].players[12].rating=70;
     nbaTeams[28].players[13].name = "Miye Oni"; nbaTeams[28].players[13].rating = 69;
     nbaTeams[28].players[14].name = "Stanton Kidd"; nbaTeams[28].players[14].rating = 68;
+    nbaTeams[28].rating = createRating(nbaTeams[28]);
+    nbaTeams[28].conference = 'W';
 
     nbaTeams[29].name = "Washington Wizards";
     nbaTeams[29].wins = 0; nbaTeams[29].losses = 0;
@@ -584,5 +645,11 @@ Team* createPlayers() {
     nbaTeams[29].players[12].name = "Admiral Schofield"; nbaTeams[29].players[12].rating=71;
     nbaTeams[29].players[13].name = "Jordan Mcrae"; nbaTeams[29].players[13].rating = 68;
     nbaTeams[29].players[14].name = "Chris Chiozza"; nbaTeams[29].players[14].rating = 68;
+    nbaTeams[29].rating = createRating(nbaTeams[29]);
+    nbaTeams[29].conference = 'E';
+
+}
+
+float createRating(Team team) {
 
 }
