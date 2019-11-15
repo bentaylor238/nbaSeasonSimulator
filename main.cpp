@@ -26,27 +26,215 @@ struct Team {
     char conference;
     int wins;
     int losses;
+    int isPlaying = 0;
+    bool hasTraded = false;
 };
 
 Team* createPlayers();
-float createRating(Team team);
+float createRating(Team &team);
+void playGame(Team &team1, Team &team2);
+void tradePlayers(Team &team1, Team &team2);
 
 int main(int argc, char **argv){
-    Team nbaTeams[30] = createPlayers();
+    struct Team *nbaTeams = (Team*)malloc(sizeof(Team)*30);
+    nbaTeams = createPlayers();
+
     int rank, size;
     MPI_Init(&argc, &argv);
     MPI_Comm_rank(MCW, &rank);
     MPI_Comm_size(MCW, &size);
 
+
     auto start = std::chrono::system_clock::now();
+
+    srand(rank);
+
+    // Simulate the first 40 games of the season for each team using 4 different processes
+    if (!rank) {
+        cout << "Process 0" << endl;
+        for (int i = 0; i < 30; i++) {
+            for (int j = 1; j <= 5; j++) {
+                playGame(nbaTeams[i], nbaTeams[(i + j) % 30]);
+                cout << "game " << i << " played on process " << rank << endl;
+            }
+        }
+        int receiving = 1;
+        MPI_Send(&receiving,1,MPI_INT,rank+1,0,MCW);
+        cout << "Process 0 finished playing" << endl;
+        MPI_Recv(&receiving, 1, MPI_INT, size-1, 0, MCW, MPI_STATUS_IGNORE);
+    }
+    else{
+        int receiving = 1;
+        cout << "Process " << rank << endl;
+        MPI_Recv(&receiving, 1, MPI_INT, rank-1,0,MCW, MPI_STATUS_IGNORE);
+        for (int i = 0; i < 30; i++) {
+            for (int j = 1; j <= 5; j++) {
+                playGame(nbaTeams[i], nbaTeams[(i + j) % 30]);
+                cout << "game " << i << " played on process " << rank << endl;
+            }
+        }
+        cout << "Process "<< rank << " finished playing" << endl;
+        MPI_Send(&receiving,1,MPI_INT,(rank+1)%size, 0, MCW);
+    }
+    MPI_Barrier(MCW);
+
+
+
+    // Trade deadline, so teams are allowed to trade with each other
+    if (!rank) {
+        for (int i = 0; i < (30/size); i++) {
+            if ((float)nbaTeams[i].wins/(nbaTeams[i].wins+nbaTeams[i].losses) < nbaTeams[i].rating) {
+                //propose trade with random other team if I'm doing bad, if they're doing good they'll take my best and worst 3 for
+                // their 6-9 players, if they're doing bad then they'll instead
+                cout << "made it into the trade" << endl;
+                int tradeConfirmed[2];
+                int tradeSuggested[5] = {i, 0, 12, 13, 14};
+                MPI_Send(tradeSuggested, 5, MPI_INT, rank+1, 0, MCW);
+                MPI_Recv(&tradeConfirmed, 2, MPI_INT, rank+1, 0, MCW, MPI_STATUS_IGNORE);
+                if (tradeConfirmed[0]) {
+                    cout << "Process 0 reports that trade is about to happen" << endl;
+                    tradePlayers(nbaTeams[i], nbaTeams[tradeConfirmed[1]]);
+                }
+            }
+            cout << "Process 0 made it past one of the teams for trading" << endl;
+        }
+        int tradeSuggested[5] = {-1, -1, -1, -1, -1};
+        MPI_Send(tradeSuggested, 5, MPI_INT, rank+1, 0, MCW);
+        cout << "Process 0 finished trading" << endl;
+    }
+    else if (rank == 1){
+        int proposedTrade[5];
+        MPI_Recv(&proposedTrade, 5, MPI_INT, rank-1, 0, MCW, MPI_STATUS_IGNORE);
+        while (proposedTrade[0] != -1) {
+            bool trade = false;
+            for (int i = (30.0/size)*rank+1; i < (30.0/size*(rank+1)); i++) {
+                if ((float)nbaTeams[i].wins/(nbaTeams[i].wins+nbaTeams[i].losses) > nbaTeams[i].rating) {
+                    int tradeConfirmed[2] = {1, i};
+                    MPI_Send(tradeConfirmed, 2, MPI_INT, 0, 0, MCW);
+                    trade = true;
+                    cout << "Team2 confirms trade" << endl;
+                    break;
+                }
+                cout << "Made it past one of the teams in process 1" << endl;
+            }
+            int tradeRejected[2] = {0, 0};
+            if (!trade) MPI_Send(tradeRejected, 2, MPI_INT, 0, 0, MCW);
+            MPI_Recv(&proposedTrade, 5, MPI_INT, rank-1, 0, MCW, MPI_STATUS_IGNORE);
+        }
+        cout << "Finished trading with Process 0" << endl;
+    }
+
+
+    // Simulate the remaining games
+    if (!rank) {
+        cout << "Process 0" << endl;
+        for (int i = 30; i < 60; i++) {
+            for (int j = 1; j <= 5; j++) {
+                playGame(nbaTeams[i], nbaTeams[(i + j) % 30]);
+                cout << "game " << i << " played on process " << rank << endl;
+            }
+        }
+        int receiving = 1;
+        MPI_Send(&receiving,1,MPI_INT,rank+1,0,MCW);
+        cout << "Process 0 finished playing" << endl;
+        MPI_Recv(&receiving, 1, MPI_INT, size-1, 0, MCW, MPI_STATUS_IGNORE);
+    }
+    else{
+        int receiving = 1;
+        cout << "Process " << rank << endl;
+        MPI_Recv(&receiving, 1, MPI_INT, rank-1,0,MCW, MPI_STATUS_IGNORE);
+        for (int i = 30; i < 60; i++) {
+            for (int j = 1; j <= 5; j++) {
+                playGame(nbaTeams[i], nbaTeams[(i + j) % 30]);
+                cout << "game " << i << " played on process " << rank << endl;
+            }
+        }
+        cout << "Process "<< rank << " finished playing" << endl;
+        MPI_Send(&receiving,1,MPI_INT,(rank+1)%size, 0, MCW);
+    }
+    MPI_Barrier(MCW);
+
+    // Report teams and their rankings per conference
+
+    // Do championship with just top 16 teams
 
     MPI_Finalize();
 
     return 0;
 }
+void tradePlayers(Team &team1, Team &team2) {
+    if (team1.hasTraded) return;
+    if (team2.hasTraded) return;
+    cout << "Made it to the trading function" << endl;
+    Player team1Players[4]; team1Players[0] = team1.players[0]; team1Players[1] = team1.players[12]; team1Players[2] = team1.players[13]; team1Players[3] = team1.players[14];
+    Player team2Players[4]; team2Players[0] = team2.players[5]; team2Players[1] = team2.players[6]; team2Players[2] = team2.players[7]; team2Players[3] = team2.players[8];
+
+    Player temp = team1.players[0];
+    team1.players[0] = team2.players[5];
+    team2.players[5] = temp;
+    cout << team1.players[0].name << " " << team2.players[5].name << endl;
+
+    temp = team1.players[12];
+    team1.players[12] = team2.players[6];
+    team2.players[6] = temp;
+    cout << team1.players[12].name << " " << team2.players[6].name << endl;
+
+    temp = team1.players[13];
+    team1.players[13] = team2.players[7];
+    team2.players[7] = temp;
+    cout << team1.players[13].name << " " << team2.players[7].name << endl;
+
+    temp = team1.players[14];
+    team1.players[14] = team2.players[8];
+    team2.players[8] = temp;
+    cout << team1.players[14].name << " " << team2.players[8].name << endl;
+    for (int i = 0; i < 15; i++) {
+        cout << team1.players[i].name;
+    }
+    cout << endl;
+    for (int i = 0; i < 15; i++) {
+        cout << team2.players[i].name;
+    }
+    cout << endl;
+}
+
+void playGame(Team &team1, Team &team2) {
+    int team1Points = 80; int team2Points = 80;
+    while (team1Points == team2Points) {
+        int rand1 = team1.rating*(rand()%100);
+        int rand2 = team2.rating*(rand()%100);
+        int score1 = ((rand()%40)+rand1)/2;
+        int score2 = ((rand()%40)+rand2)/2;
+//        cout << rand1 << " " << rand2 << endl << team1.rating << " " << team2.rating << endl;
+//        cout << (int)((float)rand1*team1.rating) << " " << (int)((float)rand2*team2.rating) << endl;
+        team1Points += score1;
+        team2Points += score2;
+//        cout << "T1: " << team1Points << " T2: " << team2Points << endl;
+    }
+    if (team1Points > team2Points) {team1.wins++;team2.losses++;}
+    else {team2.wins++;team1.losses++;}
+}
+
+
+float createRating(Team &team) {
+    int topfive = 0;
+    for (int i = 0; i < 5; i++) {
+        topfive += (team.players[i].rating*(10-i));
+    }
+    float averageFive = (float)topfive/15.0;
+
+    int nextTen = 0;
+    for (int i = 5; i < 15; i++) {
+        nextTen += (team.players[i].rating*(15/i));
+    }
+    float averageTen = (float)nextTen/14.0;
+    float totalAverage = (averageFive+averageTen)/5.0;
+    return totalAverage * 0.01;
+}
 
 Team* createPlayers() {
-    Team nbaTeams[30];//ty, jc, jp, al, dh, kh, dj, cr, cp, db, vc, ac, et, bf, tw;
+    struct Team *nbaTeams;
+    nbaTeams = (Team*)malloc(sizeof(Team)*10);
     nbaTeams[0].name = "Atlanta Hawks";
     nbaTeams[0].wins = 0; nbaTeams[0].losses = 0;
     nbaTeams[0].players[0].name = "Trae Young"; nbaTeams[0].players[0].rating = 85;
@@ -66,6 +254,7 @@ Team* createPlayers() {
     nbaTeams[0].players[14].name = "Tyrone Wallace"; nbaTeams[0].players[14].rating = 69;
     nbaTeams[0].rating = createRating(nbaTeams[0]);
     nbaTeams[0].conference = 'E';
+
 
     nbaTeams[1].name = "Boston Celtics";
     nbaTeams[1].wins = 0; nbaTeams[1].losses = 0;
@@ -286,7 +475,7 @@ Team* createPlayers() {
     nbaTeams[11].players[13].name = "JaKarr Sampson"; nbaTeams[11].players[13].rating = 71;
     nbaTeams[11].players[14].name = "Alize Johnson"; nbaTeams[11].players[14].rating = 70;
     nbaTeams[11].rating = createRating(nbaTeams[11]);
-    nbaTeams1.conference = 'E';
+    nbaTeams[11].conference = 'E';
 
     nbaTeams[12].name = "Los Angeles Clippers";
     nbaTeams[12].wins = 0; nbaTeams[12].losses = 0;
@@ -648,8 +837,9 @@ Team* createPlayers() {
     nbaTeams[29].rating = createRating(nbaTeams[29]);
     nbaTeams[29].conference = 'E';
 
-}
+    for (int i = 0; i < 30; i++) {
+        cout << nbaTeams[i].name << " " << nbaTeams[i].rating << endl;
+    }
 
-float createRating(Team team) {
-
+    return nbaTeams;
 }
