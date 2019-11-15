@@ -198,6 +198,68 @@ void tradePlayers(Team &team1, Team &team2) {
     cout << endl;
 }
 
+void reorderTeamPlayers(Team &team, bool isFirst) {
+    if (isFirst) {
+        Player swap = team.players[0];
+        for (int i = 1; i < 14; i++) {
+            Player next = team.players[i];
+            if (swap.rating < next.rating) {
+                team.players[i-1] = next;
+                team.players[i] = swap;
+            }
+            else {
+                break;
+            }
+        }
+        swap = team.players[12];
+        for (int i = 2; i < 14; i++) {
+            Player next = team.players[i];
+            if (swap.rating < next.rating) {
+                team.players[i-1] = next;
+                team.players[i] = swap;
+            }
+            else {
+                break;
+            }
+        }
+        swap = team.players[13];
+        for (int i = 3; i < 14; i++) {
+            Player next = team.players[i];
+            if (swap.rating < next.rating) {
+                team.players[i-1] = next;
+                team.players[i] = swap;
+            }
+            else {
+                break;
+            }
+        }
+        swap = team.players[14];
+        for (int i = 4; i < 14; i++) {
+            Player next = team.players[i];
+            if (swap.rating < next.rating) {
+                team.players[i-1] = next;
+                team.players[i] = swap;
+            }
+            else {
+                break;
+            }
+        }
+    }
+    else{
+        Player swap = team.players[5];
+        for (int i = 0; i < 14; i++) {
+            Player next = team.players[i];
+            if (swap.rating < next.rating) {
+                team.players[i-1] = next;
+                team.players[i] = swap;
+            }
+            else {
+                break;
+            }
+        }
+    }
+}
+
 void playGame(Team &team1, Team &team2) {
     int team1Points = 80; int team2Points = 80;
     while (team1Points == team2Points) {
