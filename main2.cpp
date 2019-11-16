@@ -35,9 +35,6 @@ float createRating(Team &team);
 void playGame(Team &team1, Team &team2);
 void tradePlayers(Team &team1, Team &team2);
 void recalculateRating(Team &team);
-Team* topEightInConference(Team *teams, string conf);
-void printTeams(Team *teams, int numTeams);
-int playoffGames(float team1, float team2);
 
 int main(int argc, char **argv){
     struct Team *nbaTeams = (Team*)malloc(sizeof(Team)*30);
@@ -53,11 +50,11 @@ int main(int argc, char **argv){
 
     srand(rank);
 
-    if (rank == 3) {
-        for (int i = 0; i < 30; i++) {
-            cout << nbaTeams[i].name << " " << nbaTeams[i].rating << endl;
-        }
-    }
+//    if (rank == 3) {
+//        for (int i = 0; i < 30; i++) {
+//            cout << nbaTeams[i].name << " " << nbaTeams[i].rating << endl;
+//        }
+//    }
 
     // Simulate the first 40 games of the season for each team using 4 different processes
     if (!rank) {
@@ -65,7 +62,7 @@ int main(int argc, char **argv){
         for (int i = 0; i < 30; i++) {
             for (int j = 1; j <= 5; j++) {
                 playGame(nbaTeams[i], nbaTeams[(i + j) % 30]);
-//                cout << "game " << i << " played on process " << rank << endl;
+                cout << "game " << i << " played on process " << rank << endl;
             }
         }
         int receiving = 1;
@@ -80,7 +77,7 @@ int main(int argc, char **argv){
         for (int i = 0; i < 30; i++) {
             for (int j = 1; j <= 5; j++) {
                 playGame(nbaTeams[i], nbaTeams[(i + j) % 30]);
-//                cout << "game " << i << " played on process " << rank << endl;
+                cout << "game " << i << " played on process " << rank << endl;
             }
         }
         cout << "Process "<< rank << " finished playing" << endl;
@@ -93,12 +90,11 @@ int main(int argc, char **argv){
     if (!rank) {
         for (int i = 0; i < (int)(30.0/size); i++) {
             cout << "Process " << rank << " is determining whether to trade team " << i << " " << (float)nbaTeams[i].wins/(nbaTeams[i].wins+nbaTeams[i].losses) << " " << nbaTeams[i].rating <<endl;
-            if ((float)nbaTeams[i].wins/(nbaTeams[i].wins+nbaTeams[i].losses) < nbaTeams[i].rating && !nbaTeams[i].hasTraded) {
+            if ((float)nbaTeams[i].wins/(nbaTeams[i].wins+nbaTeams[i].losses) < nbaTeams[i].rating) {
                 int tradeConfirmed[2];
                 MPI_Send(&i, 1, MPI_INT, rank+1, 0, MCW);
                 MPI_Recv(&tradeConfirmed, 2, MPI_INT, rank+1, 0, MCW, MPI_STATUS_IGNORE);
                 if (tradeConfirmed[0]) {
-                    cout << "Process 0 is trading team " << i << " with team " << tradeConfirmed[1] << endl;
                     tradePlayers(nbaTeams[i], nbaTeams[tradeConfirmed[1]]);
                 }
             }
@@ -112,7 +108,7 @@ int main(int argc, char **argv){
         while (proposedTrade != -1) {
             bool trade = false;
             for (int i = 0; i < (int)(30.0/size); i++) {
-                if ((float)nbaTeams[i].wins/(nbaTeams[i].wins+nbaTeams[i].losses) < nbaTeams[i].rating && !nbaTeams[i].hasTraded) {
+                if ((float)nbaTeams[i].wins/(nbaTeams[i].wins+nbaTeams[i].losses) < nbaTeams[i].rating) {
                     int tradeConfirmed[2] = {1, i};
                     MPI_Send(tradeConfirmed, 2, MPI_INT, size-1, 0, MCW);
                     trade = true;
@@ -129,11 +125,10 @@ int main(int argc, char **argv){
     else {
         int proposedTrade;
         MPI_Recv(&proposedTrade, 1, MPI_INT, rank-1, 0, MCW, MPI_STATUS_IGNORE);
-        int j = (int)(30.0/size)*rank;
         while (proposedTrade != -1) {
             bool trade = false;
-            for (int i = j; i < (int)(30.0/size*(rank+1)); i++) {j++;
-                if ((float)nbaTeams[i].wins/(nbaTeams[i].wins+nbaTeams[i].losses) < nbaTeams[i].rating && !nbaTeams[i].hasTraded) {
+            for (int i = (int)(30.0/size)*rank; i < (int)(30.0/size*(rank+1)); i++) {
+                if ((float)nbaTeams[i].wins/(nbaTeams[i].wins+nbaTeams[i].losses) < nbaTeams[i].rating) {
                     int tradeConfirmed[2] = {1, i};
                     MPI_Send(tradeConfirmed, 2, MPI_INT, rank-1, 0, MCW);
                     trade = true;
@@ -148,13 +143,13 @@ int main(int argc, char **argv){
 
         for (int i = (int)(30.0*rank/size); i < (int)(30.0*(rank+1)/size); i++) {
             cout << "Process " << rank << " is determining whether to trade team " << i << " " << (float)nbaTeams[i].wins/(nbaTeams[i].wins+nbaTeams[i].losses) << " " << nbaTeams[i].rating <<endl;
-            if ((float)nbaTeams[i].wins/(nbaTeams[i].wins+nbaTeams[i].losses) < nbaTeams[i].rating && !nbaTeams[i].hasTraded) {
+            if ((float)nbaTeams[i].wins/(nbaTeams[i].wins+nbaTeams[i].losses) < nbaTeams[i].rating) {
                 int tradeConfirmed[2];
 //                int tradeSuggested[5] = {i, 0, 12, 13, 14};
                 MPI_Send(&i, 1, MPI_INT, (rank+1)%size, 0, MCW);
                 MPI_Recv(&tradeConfirmed, 2, MPI_INT, (rank+1)%size, 0, MCW, MPI_STATUS_IGNORE);
                 if (tradeConfirmed[0]) {
-                    cout << "Process " << rank << " reports that trade is about to happen with team " << tradeConfirmed[1] << endl;
+                    cout << "Process " << rank << " reports that trade is about to happen" << endl;
                     tradePlayers(nbaTeams[i], nbaTeams[tradeConfirmed[1]]);
                 }
             }
@@ -171,7 +166,7 @@ int main(int argc, char **argv){
         for (int i = 30; i < 60; i++) {
             for (int j = 1; j <= 5; j++) {
                 playGame(nbaTeams[i], nbaTeams[(i + j) % 30]);
-//                cout << "game " << i << " played on process " << rank << endl;
+                cout << "game " << i << " played on process " << rank << endl;
             }
         }
         int receiving = 1;
@@ -186,7 +181,7 @@ int main(int argc, char **argv){
         for (int i = 30; i < 60; i++) {
             for (int j = 1; j <= 5; j++) {
                 playGame(nbaTeams[i], nbaTeams[(i + j) % 30]);
-//                cout << "game " << i << " played on process " << rank << endl;
+                cout << "game " << i << " played on process " << rank << endl;
             }
         }
         cout << "Process "<< rank << " finished playing" << endl;
@@ -194,202 +189,13 @@ int main(int argc, char **argv){
     }
 //    MPI_Barrier(MCW);
 
-    // Report individual process information back to 0
-    if (!rank) {
-        for (int i = 0; i < (30 * (size-1)); i++) {
-            int teaminfo[3];
-            MPI_Recv(&teaminfo, 3, MPI_INT, MPI_ANY_SOURCE, 0, MCW, MPI_STATUS_IGNORE);
-            nbaTeams[teaminfo[0]].wins += teaminfo[1];
-            nbaTeams[teaminfo[0]].losses += teaminfo[2];
-        }
-    }
-    else {
-        for (int i = 0; i < 30; i++) {
-            int teaminfo[3] = {i, nbaTeams[i].wins, nbaTeams[i].losses};
-            MPI_Send(teaminfo, 3, MPI_INT, 0, 0, MCW);
-        }
-    }
-
     // Report teams and their rankings per conference
-    Team *west = (Team *) malloc(sizeof(Team) * 8);
-    Team *east = (Team *) malloc(sizeof(Team) * 8);
-    if (!rank) {
-        west = topEightInConference(nbaTeams, "W");
-        east = topEightInConference(nbaTeams, "E");
-    }
 
-    // Do playoffs with just top 16 teams
-    if (!rank) {
-        Team *round2West = (Team *) malloc(sizeof(Team) * 4);
-        Team *round2East = (Team *) malloc(sizeof(Team) * 4);
-        Team *round3West = (Team *) malloc(sizeof(Team) * 2);
-        Team *round3East = (Team *) malloc(sizeof(Team) * 2);
-        Team westChamp, eastChamp;
-        for (int i = 0; i < 4; i++) {
-            float round[2] = {west[i*2].rating, west[7-i].rating};
-            MPI_Send(round, 2, MPI_FLOAT, rank+1, 0, MCW);
-            int winner;
-            MPI_Recv(&winner, 1, MPI_INT, rank+1, 0, MCW, MPI_STATUS_IGNORE);
-            if (!winner) round2West[i] = west[i];
-            else round2West[i] = west[7-i];
-        }
-        for (int i = 0; i < 4; i++) {
-            float round[2] = {east[i*2].rating, east[7-i].rating};
-            MPI_Send(round, 2, MPI_FLOAT, rank+2, 0, MCW);
-            int winner;
-            MPI_Recv(&winner, 1, MPI_INT, rank+2, 0, MCW, MPI_STATUS_IGNORE);
-            if (!winner) round2East[i] = east[i];
-            else round2East[i] = east[7-i];
-        }
-
-        for (int i = 0; i < 2; i++) {
-            float round[2] = {round2West[i*2].rating, round2West[7-i].rating};
-            MPI_Send(round, 2, MPI_FLOAT, rank+1, 0, MCW);
-            int winner;
-            MPI_Recv(&winner, 1, MPI_INT, rank+1, 0, MCW, MPI_STATUS_IGNORE);
-            if (!winner) round3West[i] = round2West[i];
-            else round3West[i] = round2West[3-i];
-        }
-        for (int i = 0; i < 2; i++) {
-            float round[2] = {round2East[i*2].rating, round2East[7-i].rating};
-            MPI_Send(round, 2, MPI_FLOAT, rank+2, 0, MCW);
-            int winner;
-            MPI_Recv(&winner, 1, MPI_INT, rank+2, 0, MCW, MPI_STATUS_IGNORE);
-            if (!winner) round3East[i] = round2East[i];
-            else round3East[i] = round2East[3-i];
-        }
-
-        //Conference Championships
-        float round[2] = {round3West[0].rating, round3West[1].rating};
-        MPI_Send(round, 2, MPI_FLOAT, rank+1, 0, MCW);
-        int winner;
-        MPI_Recv(&winner, 1, MPI_INT, rank+1, 0, MCW, MPI_STATUS_IGNORE);
-        if (!winner) westChamp = round3West[0];
-        else westChamp = round2West[1];
-
-        round[0] = round3East[0].rating; round[1] = round3East[1].rating;
-        MPI_Send(round, 2, MPI_FLOAT, rank+2, 0, MCW);
-        MPI_Recv(&winner, 1, MPI_INT, rank+2, 0, MCW, MPI_STATUS_IGNORE);
-        if (!winner) eastChamp = round3East[0];
-        else eastChamp = round3East[1];
-
-        round[0] = westChamp.rating; round[1] = eastChamp.rating;
-        MPI_Send(round, 2, MPI_FLOAT, rank+1, 0, MCW);
-        MPI_Recv(&winner, 1, MPI_INT, rank+1, 0, MCW, MPI_STATUS_IGNORE);
-        if (!winner) { // West champ won
-            cout << westChamp.name << " has won the NBA Championship" << endl;
-        }
-        else { // East Champ won
-            cout << eastChamp.name << " has won the NBA Championship" << endl;
-        }
-
-        round[0] = -1.0; round[1] = -1.0;
-        MPI_Send(round, 2, MPI_FLOAT, rank+1, 0, MCW);
-        MPI_Send(round, 2, MPI_FLOAT, rank+2, 0, MCW);
-    }
-    else if (rank != (size-1)) {
-        float round[2];
-        MPI_Recv(&round, 2, MPI_FLOAT, 0, 0, MCW, MPI_STATUS_IGNORE);
-        while (round[0] != -1.0) {
-            int winner = playoffGames(round[0], round[1]);
-            MPI_Send(&winner, 1, MPI_INT, 0, 0, MCW);
-        }
-    }
+    // Do championship with just top 16 teams
 
     MPI_Finalize();
 
     return 0;
-}
-
-int playoffGames(float team1, float team2) {
-    int team1Wins = 0;
-    int team2Wins = 0;
-    for (int i = 0; i < 7; i++) {
-        int team1Points = 80;
-        int team2Points = 80;
-        while (team1Points == team2Points) {
-            int rand1 = team1 * (rand() % 100);
-            int rand2 = team2 * (rand() % 100);
-            int score1 = ((rand() % 40) + rand1) / 2;
-            int score2 = ((rand() % 40) + rand2) / 2;
-            team1Points += score1;
-            team2Points += score2;
-        }
-        if (team1Points > team2Points) {
-            team1Wins++;
-            if (team1Wins == 4) break;
-        }
-        else {
-            team2Wins++;
-            if (team2Wins == 4) break;
-        }
-    }
-
-    return team1Wins == 4 ? 0 : 1;
-}
-
-Team* topEightInConference(Team *teams, string conf) {
-    Team *best = (Team*)malloc(sizeof(Team)*8);
-    for (int i = 0; i < 8; i++) {
-        best[i].wins = 0;
-    }
-
-    for (int i = 0; i < 30; i++) {
-        if (teams[i].conference == conf[0] && teams[i].wins > best[0].wins) {
-            for (int j = 7; j >=0; j--) {
-                if (j == 0) best[j] = teams[i];
-                else best[j] = best[j-1];
-            }
-        }
-        else if (teams[i].conference == conf[0] && teams[i].wins > best[1].wins) {
-            for (int j = 7; j >=1; j--) {
-                if (j == 1) best[j] = teams[i];
-                else best[j] = best[j-1];
-            }
-        }
-        else if (teams[i].conference == conf[0] && teams[i].wins > best[2].wins) {
-            for (int j = 7; j >=2; j--) {
-                if (j == 2) best[j] = teams[i];
-                else best[j] = best[j-1];
-            }
-        }
-        else if (teams[i].conference == conf[0] && teams[i].wins > best[3].wins) {
-            for (int j = 7; j >=3; j--) {
-                if (j == 3) best[j] = teams[i];
-                else best[j] = best[j-1];
-            }
-        }
-        else if (teams[i].conference == conf[0] && teams[i].wins > best[4].wins) {
-            for (int j = 7; j >=4; j--) {
-                if (j == 4) best[j] = teams[i];
-                else best[j] = best[j-1];
-            }
-        }
-        else if (teams[i].conference == conf[0] && teams[i].wins > best[5].wins) {
-            for (int j = 7; j >=5; j--) {
-                if (j == 5) best[j] = teams[i];
-                else best[j] = best[j-1];
-            }
-        }
-        else if (teams[i].conference == conf[0] && teams[i].wins > best[6].wins) {
-            for (int j = 7; j >=6; j--) {
-                if (j == 6) best[j] = teams[i];
-                else best[j] = best[j-1];
-            }
-        }
-        else if (teams[i].conference == conf[0] && teams[i].wins > best[7].wins) {
-            best[7] = teams[i];
-        }
-    }
-    printTeams(best, 8);
-
-    return best;
-}
-
-void printTeams(Team *teams, int numTeams) {
-    for (int i = 0; i < numTeams; i++) {
-        cout << i << ") " << teams[i].name << " " << teams[i].wins << " " << teams[i].losses << endl;
-    }
 }
 
 void tradePlayers(Team &team1, Team &team2) {
@@ -400,7 +206,7 @@ void tradePlayers(Team &team1, Team &team2) {
     Player team1Players[4]; team1Players[0] = team1.players[0]; team1Players[1] = team1.players[12]; team1Players[2] = team1.players[13]; team1Players[3] = team1.players[14];
     Player team2Players[4]; team2Players[0] = team2.players[5]; team2Players[1] = team2.players[6]; team2Players[2] = team2.players[7]; team2Players[3] = team2.players[8];
 
-   cout << team1.name << " " << team2.name << endl;
+    cout << team1.name << " " << team2.name << endl;
 
     Player temp = team1.players[0];
     team1.players[0] = team2.players[5];
@@ -508,7 +314,7 @@ float createRating(Team &team) {
 
 Team* createPlayers() {
     struct Team *nbaTeams;
-    nbaTeams = (Team*)malloc(sizeof(Team)*30);
+    nbaTeams = (Team*)malloc(sizeof(Team)*10);
     nbaTeams[0].name = "Atlanta Hawks";
     nbaTeams[0].wins = 0; nbaTeams[0].losses = 0;
     nbaTeams[0].players[0].name = "Trae Young"; nbaTeams[0].players[0].rating = 85;
