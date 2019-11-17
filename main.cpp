@@ -225,38 +225,43 @@ int main(int argc, char **argv){
         Team *round3East = (Team *) malloc(sizeof(Team) * 2);
         Team westChamp, eastChamp;
         for (int i = 0; i < 4; i++) {
-            float round[2] = {west[i*2].rating, west[7-i].rating};
+            float round[2] = {west[i].rating, west[7-i].rating};
             MPI_Send(round, 2, MPI_FLOAT, rank+1, 0, MCW);
             int winner;
             MPI_Recv(&winner, 1, MPI_INT, rank+1, 0, MCW, MPI_STATUS_IGNORE);
             if (!winner) round2West[i] = west[i];
             else round2West[i] = west[7-i];
+            cout << round2West[i].name << " is going to the next round" << endl;
         }
         for (int i = 0; i < 4; i++) {
-            float round[2] = {east[i*2].rating, east[7-i].rating};
+            float round[2] = {east[i].rating, east[7-i].rating};
             MPI_Send(round, 2, MPI_FLOAT, rank+2, 0, MCW);
             int winner;
             MPI_Recv(&winner, 1, MPI_INT, rank+2, 0, MCW, MPI_STATUS_IGNORE);
             if (!winner) round2East[i] = east[i];
             else round2East[i] = east[7-i];
+            cout << round2East[i].name << " is going to the next round" << endl;
         }
-
+        cout << "First round of the playoffs completed" << endl << endl;
         for (int i = 0; i < 2; i++) {
-            float round[2] = {round2West[i*2].rating, round2West[3-i].rating};
+            float round[2] = {round2West[i].rating, round2West[3-i].rating};
             MPI_Send(round, 2, MPI_FLOAT, rank+1, 0, MCW);
             int winner;
             MPI_Recv(&winner, 1, MPI_INT, rank+1, 0, MCW, MPI_STATUS_IGNORE);
             if (!winner) round3West[i] = round2West[i];
             else round3West[i] = round2West[3-i];
+            cout << round3West[i].name << " is going to the next round" << endl;
         }
         for (int i = 0; i < 2; i++) {
-            float round[2] = {round2East[i*2].rating, round2East[3-i].rating};
+            float round[2] = {round2East[i].rating, round2East[3-i].rating};
             MPI_Send(round, 2, MPI_FLOAT, rank+2, 0, MCW);
             int winner;
             MPI_Recv(&winner, 1, MPI_INT, rank+2, 0, MCW, MPI_STATUS_IGNORE);
             if (!winner) round3East[i] = round2East[i];
             else round3East[i] = round2East[3-i];
+            cout << round3East[i].name << " is going to the next round" << endl;
         }
+        cout << "Second round of the playoffs completed" << endl << endl;
 
         //Conference Championships
         float round[2] = {round3West[0].rating, round3West[1].rating};
@@ -264,13 +269,16 @@ int main(int argc, char **argv){
         int winner;
         MPI_Recv(&winner, 1, MPI_INT, rank+1, 0, MCW, MPI_STATUS_IGNORE);
         if (!winner) westChamp = round3West[0];
-        else westChamp = round2West[1];
+        else westChamp = round3West[1];
+        cout << westChamp.name << " is going to the next round" << endl;
 
         round[0] = round3East[0].rating; round[1] = round3East[1].rating;
         MPI_Send(round, 2, MPI_FLOAT, rank+2, 0, MCW);
         MPI_Recv(&winner, 1, MPI_INT, rank+2, 0, MCW, MPI_STATUS_IGNORE);
         if (!winner) eastChamp = round3East[0];
         else eastChamp = round3East[1];
+        cout << eastChamp.name << " is going to the next round" << endl;
+        cout << "Conference Championships completed" << endl << endl;
 
         round[0] = westChamp.rating; round[1] = eastChamp.rating;
         MPI_Send(round, 2, MPI_FLOAT, rank+1, 0, MCW);
@@ -292,6 +300,7 @@ int main(int argc, char **argv){
         while (round[0] != -1.0) {
             int winner = playoffGames(round[0], round[1]);
             MPI_Send(&winner, 1, MPI_INT, 0, 0, MCW);
+            MPI_Recv(&round, 2, MPI_FLOAT, 0, 0, MCW, MPI_STATUS_IGNORE);
         }
     }
 
