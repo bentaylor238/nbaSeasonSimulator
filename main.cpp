@@ -1,5 +1,5 @@
 //
-// Created by Ben Taylor on 10/28/19.
+// Created by Ben Taylor on 11/16/19.
 //
 
 #include <iostream>
@@ -26,7 +26,6 @@ struct Team {
     char conference;
     int wins;
     int losses;
-    int isPlaying = 0;
     bool hasTraded = false;
 };
 
@@ -48,8 +47,7 @@ int main(int argc, char **argv){
     MPI_Comm_rank(MCW, &rank);
     MPI_Comm_size(MCW, &size);
 
-
-//    auto start = std::chrono::system_clock::now();
+    auto start = std::chrono::system_clock::now();
 
     srand(rank);
 
@@ -61,7 +59,7 @@ int main(int argc, char **argv){
 
     // Simulate the first 40 games of the season for each team using 4 different processes
     if (!rank) {
-        cout << "Process 0" << endl;
+//        cout << "Process 0" << endl;
         for (int i = 0; i < 30; i++) {
             for (int j = 1; j <= 5; j++) {
                 playGame(nbaTeams[i], nbaTeams[(i + j) % 30]);
@@ -75,7 +73,7 @@ int main(int argc, char **argv){
     }
     else{
         int receiving = 1;
-        cout << "Process " << rank << endl;
+//        cout << "Process " << rank << endl;
         MPI_Recv(&receiving, 1, MPI_INT, rank-1,0,MCW, MPI_STATUS_IGNORE);
         for (int i = 0; i < 30; i++) {
             for (int j = 1; j <= 5; j++) {
@@ -167,7 +165,6 @@ int main(int argc, char **argv){
 
     // Simulate the remaining games
     if (!rank) {
-        cout << "Process 0" << endl;
         for (int i = 30; i < 60; i++) {
             for (int j = 1; j <= 5; j++) {
                 playGame(nbaTeams[i], nbaTeams[(i + j) % 30]);
@@ -181,7 +178,6 @@ int main(int argc, char **argv){
     }
     else{
         int receiving = 1;
-        cout << "Process " << rank << endl;
         MPI_Recv(&receiving, 1, MPI_INT, rank-1,0,MCW, MPI_STATUS_IGNORE);
         for (int i = 30; i < 60; i++) {
             for (int j = 1; j <= 5; j++) {
@@ -192,7 +188,7 @@ int main(int argc, char **argv){
         cout << "Process "<< rank << " finished playing" << endl;
         MPI_Send(&receiving,1,MPI_INT,(rank+1)%size, 0, MCW);
     }
-//    MPI_Barrier(MCW);
+    MPI_Barrier(MCW);
 
     // Report individual process information back to 0
     if (!rank) {
@@ -214,8 +210,11 @@ int main(int argc, char **argv){
     Team *west = (Team *) malloc(sizeof(Team) * 8);
     Team *east = (Team *) malloc(sizeof(Team) * 8);
     if (!rank) {
+        cout << endl << "Western Conference Playoff Standings:" << endl;
         west = topEightInConference(nbaTeams, "W");
+        cout << endl << "Eastern Conference Playoff Standings:" << endl;
         east = topEightInConference(nbaTeams, "E");
+        cout << endl;
     }
 
     // Do playoffs with just top 16 teams
@@ -243,7 +242,7 @@ int main(int argc, char **argv){
         }
 
         for (int i = 0; i < 2; i++) {
-            float round[2] = {round2West[i*2].rating, round2West[7-i].rating};
+            float round[2] = {round2West[i*2].rating, round2West[3-i].rating};
             MPI_Send(round, 2, MPI_FLOAT, rank+1, 0, MCW);
             int winner;
             MPI_Recv(&winner, 1, MPI_INT, rank+1, 0, MCW, MPI_STATUS_IGNORE);
@@ -251,7 +250,7 @@ int main(int argc, char **argv){
             else round3West[i] = round2West[3-i];
         }
         for (int i = 0; i < 2; i++) {
-            float round[2] = {round2East[i*2].rating, round2East[7-i].rating};
+            float round[2] = {round2East[i*2].rating, round2East[3-i].rating};
             MPI_Send(round, 2, MPI_FLOAT, rank+2, 0, MCW);
             int winner;
             MPI_Recv(&winner, 1, MPI_INT, rank+2, 0, MCW, MPI_STATUS_IGNORE);
@@ -295,6 +294,14 @@ int main(int argc, char **argv){
             MPI_Send(&winner, 1, MPI_INT, 0, 0, MCW);
         }
     }
+
+    if (!rank) {
+        auto end = std::chrono::system_clock::now();
+        std::chrono::duration<double> elapsed_seconds = end - start;
+        cout << "The NBA season took " << elapsed_seconds.count() << " seconds" << endl;
+    }
+
+    cout << "Process " << rank << " has finished its duties" << endl;
 
     MPI_Finalize();
 
@@ -388,7 +395,7 @@ Team* topEightInConference(Team *teams, string conf) {
 
 void printTeams(Team *teams, int numTeams) {
     for (int i = 0; i < numTeams; i++) {
-        cout << i << ") " << teams[i].name << " " << teams[i].wins << " " << teams[i].losses << endl;
+        cout << i+1 << ") " << teams[i].name << " " << teams[i].wins << " " << teams[i].losses << endl;
     }
 }
 
@@ -421,16 +428,9 @@ void tradePlayers(Team &team1, Team &team2) {
     team1.players[14] = team2.players[8];
     team2.players[8] = temp;
     cout << team1.players[14].name << " " << team2.players[8].name << endl;
-//    for (int i = 0; i < 15; i++) {
-//        cout << team1.players[i].name;
-//    }
     recalculateRating(team1);
-//    cout << endl;
-//    for (int i = 0; i < 15; i++) {
-//        cout << team2.players[i].name;
-//    }
     recalculateRating(team2);
-//    cout << endl;
+    cout << endl;
 }
 
 void recalculateRating(Team &team) {
@@ -479,11 +479,8 @@ void playGame(Team &team1, Team &team2) {
         int rand2 = team2.rating*(rand()%100);
         int score1 = ((rand()%40)+rand1)/2;
         int score2 = ((rand()%40)+rand2)/2;
-//        cout << rand1 << " " << rand2 << endl << team1.rating << " " << team2.rating << endl;
-//        cout << (int)((float)rand1*team1.rating) << " " << (int)((float)rand2*team2.rating) << endl;
         team1Points += score1;
         team2Points += score2;
-//        cout << "T1: " << team1Points << " T2: " << team2Points << endl;
     }
     if (team1Points > team2Points) {team1.wins++;team2.losses++;}
     else {team2.wins++;team1.losses++;}
@@ -1110,10 +1107,6 @@ Team* createPlayers() {
     nbaTeams[29].players[14].name = "Chris Chiozza"; nbaTeams[29].players[14].rating = 68;
     nbaTeams[29].rating = createRating(nbaTeams[29]);
     nbaTeams[29].conference = 'E';
-
-//    for (int i = 0; i < 30; i++) {
-//        cout << nbaTeams[i].name << " " << nbaTeams[i].rating << endl;
-//    }
 
     return nbaTeams;
 }
